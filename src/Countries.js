@@ -51,7 +51,8 @@ const SearchResults = ({query, countryList}) => {
   if (query.length && displayList) {
     return (
       <ul>
-        {matches.map((country) => <li key={country.cca2}>{country.name.common}</li>)}
+        {matches.map((country) => <CountryListEntry key={country.cca2} name={country.name.common}
+                                                    data={country}/>/*<li key={country.cca2}>{country.name.common}</li>*/)}
       </ul>
     );
   } else if (query.length && matches.length > 10) {
@@ -61,7 +62,25 @@ const SearchResults = ({query, countryList}) => {
   } else if (query.length) {
     return <p>No countries found</p>;
   }
-  // } else if ()
+};
+
+const CountryListEntry = ({name, data}) => {
+  const [showDetails, setShowDetails] = useState(false);
+  const [buttonName, setButtonName] = useState('View');
+
+  return (
+    <li>{name}&nbsp;
+      <button name="details-button" type="button" onClick={() => {
+        setShowDetails(!showDetails);
+        setButtonName((prevName) => {
+          if (prevName === 'View') return 'Hide';
+          else return 'View';
+        });
+      }
+      }>{buttonName}</button>
+      {showDetails && <Country data={data}/>}
+    </li>
+  );
 };
 
 const Country = ({data}) => {
@@ -75,11 +94,11 @@ const Country = ({data}) => {
 
   let regionLine;
   if (subregion && region) {
-    regionLine = <p>{subregion}, {region}</p>
+    regionLine = <p>{subregion}, {region}</p>;
   } else if (subregion) {
-    regionLine = <p>{subregion}</p>
+    regionLine = <p>{subregion}</p>;
   } else if (region) {
-    regionLine = <p>{region}</p>
+    regionLine = <p>{region}</p>;
   }
 
   return (
@@ -95,10 +114,44 @@ const Country = ({data}) => {
         </>
       }
       <h1 style={{fontSize: "12rem", margin: 0}}>{flag}</h1>
+      {data.capital &&
+        <>
+          <h1>Weather in {data.capital[0]}</h1>
+          <Weather capitalInfo={data.capitalInfo} countryCode={data.cca2}/>
+        </>
+      }
     </div>
   );
-
-
 };
+
+const Weather = ({capitalInfo, countryCode}) => {
+  const api_key = process.env.REACT_APP_WEATHER_API_KEY;
+  const [weatherData, setWeatherData] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      // const {data} = await axios
+      //   .get(`http://api.openweathermap.org/geo/1.0/direct?q=${capital},${countryCode}&limit=1&appid=${api_key}`);
+      const [lat, lon] = [capitalInfo.latlng[0], capitalInfo.latlng[1]];
+      const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${api_key}&units=imperial`);
+      const weather = response.data;
+      setWeatherData(weather);
+      setLoading(false);
+    };
+    fetchData();
+  }, [api_key, capitalInfo, countryCode]);
+
+  if (!loading) {
+    return (
+      <>
+        <p>Current temperature: {weatherData.main.temp}&deg;F</p>
+        <img alt="weather icon" src={`http://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}/>
+        <p>Wind speed: {weatherData.wind.speed} mph {weatherData.wind.deg}&deg;</p>
+      </>
+    );
+  }
+};
+
 
 export default Countries;
