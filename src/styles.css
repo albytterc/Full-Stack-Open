@@ -1,3 +1,119 @@
+html, body {
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    /*overflow: hidden;*/
+}
+
+body {
+    background: linear-gradient(white 65%, rgb(245, 245, 245));
+    /*border: 1px solid black;*/
+}
+
+#root {
+    width: 100%;
+}
+
+#root > div {
+    margin: 0 auto;
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    font-family: Helvetica, sans-serif;
+    align-items: center;
+    /*border-bottom: 1px solid rgba(0,0,0, 0.5);*/
+    border-radius: 5px;
+    box-shadow: 0 3px rgba(0, 0, 0, 0.1);
+    background-color: white;
+}
+
+form {
+    /*padding: 0;*/
+    /*width: 20%;*/
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+}
+
+form label, form input {
+    margin: 5px;
+    display: inline-block;
+}
+
+form input {
+    width: 150px;
+}
+
+form label {
+    text-align: right;
+    width: 60px;
+    /*display: inline;*/
+}
+
+button[type="submit"] {
+    margin: 10px auto;
+    display: block;
+    width: 100px;
+    text-transform: capitalize;
+}
+
+#search-box {
+    margin-bottom: 2em;
+}
+
+
+table {
+    margin-bottom: 2em;
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding: 5px;
+    max-width: 500px;
+    min-width: 500px;
+    overflow: scroll;
+    table-layout: fixed;
+}
+
+#no-results {
+    margin-top: 2em;
+}
+
+td, th {
+    padding: 3px 5px;
+    border-bottom: 1px solid black;
+}
+
+th {
+    text-align: left;
+}
+
+tr:nth-child(odd) td {
+    background-color: #ececec;
+}
+
+td {
+    max-width: 200px;
+
+}
+
+td .scrollable {
+    white-space: nowrap;
+    scrollbar-width: thin;
+    overflow: auto;
+}
+
+td:last-of-type {
+    text-align: right;
+}
+
+td button {
+    border-width: 0;
+    background: none;
+    color: #e80000;
+    font-weight: bold;
+}
+
+
 .error {
     color: white;
     background: linear-gradient(#ff0000, #ee0000);
@@ -20,32 +136,41 @@
     font-family: "Lucida Sans", sans-serif;
 }
 
-form {
-    /*padding: 0;*/
-    width: 20%;
-    min-width: 250px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.loading {
+    animation: fade-in-out 1s linear infinite;
+    animation-direction: alternate;
 }
-form label, form input {
-    margin: 5px;
+
+
+@keyframes fade-in-out {
+    from {
+        opacity: 100%;
+    }
+    to {
+        opacity: 10%;
+    }
+}
+
+#circle {
+    width: 15px;
+    height: 15px;
     display: inline-block;
+    border: 3px solid white;
+    border-top: 3px solid blue;
+    border-radius: 50%;
+    animation: load-spinner 1s linear infinite;
+
 }
 
-form input {
-    width: 150px;
-}
-
-form label {
-    text-align: right;
-    width: 50px;
-}
-
-button[type="submit"] {
-    margin: 10px auto;
-    /*display: block;*/
-    width: 100px;
-    text-transform: capitalize;
-
+@keyframes load-spinner {
+    from {
+        transform: rotate(0deg);
+    }
+    /*25% {*/
+    /*    transform: rotate(180deg);*/
+    /*}*/
+    to {
+        transform: rotate(360deg);
+        /*border-color: white;*/
+    }
 }

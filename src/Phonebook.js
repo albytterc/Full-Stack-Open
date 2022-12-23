@@ -16,7 +16,7 @@ const Phonebook = () => {
     Services
       .getAllPersons()
       .then((data) => setPersons(data))
-      .catch((err) => setErrorMessage("Unable to get contacts"));
+      .catch((err) => setErrorMessage(err.message + ": Unable to get contact list"));
 
 
   }, []);
@@ -33,7 +33,7 @@ const Phonebook = () => {
     Services
       .addPerson(newName, newNumber)
       .then((data) => setPersons(persons.concat(data)))
-      .then(() => setSuccessMessage(`Added ${newName} to phonebook}`))
+      .then(() => setSuccessMessage(`Added ${newName} to phonebook`))
       .catch((err) => setErrorMessage(`Unable to add ${newName} to phonebook`))
       .finally(() => {
         setTimeout(() => setErrorMessage(null), 5000);
@@ -87,21 +87,22 @@ const Phonebook = () => {
 
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
-    setNewSearchResults(persons.filter((person) => person.name?.toLowerCase().includes(query)));
+    const results = persons.filter((person) => person.name?.toLowerCase().includes(query));
+    setNewSearchResults(results);
     setNewSearch(event.target.value);
-
   };
 
   return (
     <div>
-      <h2>Phonebook</h2>
+      <h1>Phonebook</h1>
       <Notification className={errorMessage ? "error" : "success"} message={errorMessage || successMessage}/>
       <PersonForm addContact={addContact} newName={newName} handleName={handleName} newNumber={newNumber}
                   handleNumber={handleNumber}/>
       <h2>Contacts</h2>
-      <label>Search by name: <input value={newSearch} name="search" type="text" onChange={handleSearch}/></label>
+      <label id="search-box">Search by name: <input value={newSearch} name="search" type="text" onChange={handleSearch}/></label>
       <SearchResults deleteHandler={deleteContact} searchResults={searchResults} newSearch={newSearch}
                      persons={persons}/>
+      {/*<p className="loading">Loading contacts...</p>*/}
     </div>
   );
 };
@@ -112,11 +113,11 @@ const PersonForm = ({addContact, newName, handleName, newNumber, handleNumber}) 
     <form onSubmit={addContact}>
       <div>
         <label>Name:</label>
-        <input value={newName} onChange={handleName} name="name" type="text"/>
+        <input required value={newName} onChange={handleName} name="name" type="text"/>
       </div>
       <div>
         <label>Number:</label>
-        <input value={newNumber} onChange={handleNumber} name="number" type="text"/>
+        <input required value={newNumber} onChange={handleNumber} name="number" type="text"/>
       </div>
       <div>
         <button type="submit">add</button>
@@ -126,26 +127,67 @@ const PersonForm = ({addContact, newName, handleName, newNumber, handleNumber}) 
 };
 
 const Person = ({deleteHandler, name, number}) => {
+  let numFormat;
+  if (number.length === 10) {
+    numFormat = `(${number.substring(0, 3)}) ${number.substring(3, 6)}-${number.substring(6)}`;
+  } else if (number.length === 11) {
+    numFormat = `+${number[0]} ${number.substring(1, 4)}  ${number.substring(4, 7)} ${number.substring(7)}`;
+
+  }
+
+  const elems = Array.from(document.querySelectorAll("table .scrollable"));
+  for (const elem of elems) {
+    if (elem.scrollWidth > elem.clientWidth) {
+      elem.setAttribute("title", elem.innerText);
+    }
+  }
+
   return (
-    <>
-      <p>{name} {number}&nbsp;
+    <tr>
+      <td>
+        <div className="scrollable">{name}</div>
+      </td>
+      <td>
+        <div className="scrollable">{numFormat || number}</div>
+      </td>
+      <td>
         <button type="button" name="delete-contact" onClick={deleteHandler}>Delete</button>
-      </p>
-    </>
+      </td>
+    </tr>
   );
 };
 
 const SearchResults = ({deleteHandler, searchResults, newSearch, persons}) => {
+  let toMapOver;
 
   if (newSearch.length && searchResults.length) { // bring up search results
-    return searchResults.map((person) => <Person deleteHandler={() => deleteHandler(person.id)} key={person.id}
-                                                 name={person.name} number={person.number}/>);
+    toMapOver = searchResults;
   } else if (newSearch.length) { // no results for query
-    return <p>No results found</p>;
+    return <p id="no-results">No results found</p>;
   } else { // when nothing is being searched, show all contacts
-    return persons.map((person) => <Person deleteHandler={() => deleteHandler(person.id)} key={person.id}
-                                           name={person.name} number={person.number}/>);
+    toMapOver = persons;
+    // return persons.map((person) => <Person deleteHandler={() => deleteHandler(person.id)} key={person.id}
+    //                                        name={person.name} number={person.number}/>);
   }
+  const table = (
+    <table>
+      <thead>
+      <tr>
+        <th>Name</th>
+        <th>Number</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      {toMapOver.map((person) => <Person deleteHandler={() => deleteHandler(person.id)} key={person.id}
+                                         name={person.name} number={person.number}/>)}
+      </tbody>
+    </table>
+  );
+
+  return toMapOver.length ? table : <p className="loading">Loading contacts...</p>;
+
+
 };
 
 export default Phonebook;
