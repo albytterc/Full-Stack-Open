@@ -1,28 +1,29 @@
 import axios from "axios";
 
-// const baseUrl = 'http://localhost:3001'
+const baseUrl = '/api/persons'
+
 
 const getAllPersons = () => {
   return axios
-    .get('http://localhost:8000/persons')
+    .get(baseUrl)
     .then((response) => response.data);
 };
 
 const addPerson = (name, number) => {
   return axios
-    .post('http://localhost:8000/persons', {name, number})
+    .post(baseUrl, {name, number})
     .then((response) => response.data);
 };
 
 const updatePersonNumber = (id, name, number) => {
   return axios
-    .put(`http://localhost:8000/persons/${id}`, {name, number})
+    .put(`${baseUrl}/${id}`, {name, number})
     .then((response) => response.data);
 };
 
 const deletePerson = (id) => {
   return axios
-    .delete(`http://localhost:8000/persons/${id}`)
+    .delete(`${baseUrl}/${id}`)
     .then((response) => response.data);
 
 };

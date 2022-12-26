@@ -11,13 +11,14 @@ const Phonebook = () => {
   const [searchResults, setNewSearchResults] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [loadingContacts, setLoadingContacts] = useState(true);
 
   useEffect(() => {
     Services
       .getAllPersons()
       .then((data) => setPersons(data))
-      .catch((err) => setErrorMessage(err.message + ": Unable to get contact list"));
-
+      .catch((err) => setErrorMessage(err.message + ": Unable to get contact list"))
+      .finally(() => setLoadingContacts(false))
 
   }, []);
 
@@ -34,11 +35,10 @@ const Phonebook = () => {
       .addPerson(newName, newNumber)
       .then((data) => setPersons(persons.concat(data)))
       .then(() => setSuccessMessage(`Added ${newName} to phonebook`))
-      .catch((err) => setErrorMessage(`Unable to add ${newName} to phonebook`))
+      .catch((err) => setErrorMessage(`${err.response.data.error}: Unable to add ${newName} to phonebook`))
       .finally(() => {
         setTimeout(() => setErrorMessage(null), 5000);
         setTimeout(() => setSuccessMessage(null), 5000);
-
       });
   };
 
@@ -66,7 +66,7 @@ const Phonebook = () => {
         .updatePersonNumber(id, name, number)
         .then((data) => setPersons(persons.map((person) => person.id === id ? data : person)))
         .then(() => setSuccessMessage(`Updated ${name}'s phone number to ${number}`))
-        .catch((err) => setErrorMessage(`Unable to update ${name}'s phone number to ${number}`))
+        .catch((err) => setErrorMessage(`${err.response.data.error}: Unable to update ${name}'s phone number to ${number}`))
         .finally(() => {
           setTimeout(() => setErrorMessage(null), 5000);
           setTimeout(() => setSuccessMessage(null), 5000);
@@ -101,7 +101,7 @@ const Phonebook = () => {
       <h2>Contacts</h2>
       <label id="search-box">Search by name: <input value={newSearch} name="search" type="text" onChange={handleSearch}/></label>
       <SearchResults deleteHandler={deleteContact} searchResults={searchResults} newSearch={newSearch}
-                     persons={persons}/>
+                     persons={persons} loadingContacts={loadingContacts}/>
       {/*<p className="loading">Loading contacts...</p>*/}
     </div>
   );
@@ -157,7 +157,7 @@ const Person = ({deleteHandler, name, number}) => {
   );
 };
 
-const SearchResults = ({deleteHandler, searchResults, newSearch, persons}) => {
+const SearchResults = ({deleteHandler, searchResults, newSearch, persons, loadingContacts}) => {
   let toMapOver;
 
   if (newSearch.length && searchResults.length) { // bring up search results
@@ -185,8 +185,13 @@ const SearchResults = ({deleteHandler, searchResults, newSearch, persons}) => {
     </table>
   );
 
-  return toMapOver.length ? table : <p className="loading">Loading contacts...</p>;
-
+  if (toMapOver.length) {
+    return table;
+  } else if (loadingContacts) {
+    return <p className="loading">Loading contacts...</p>
+  } else {
+    return null;
+  }
 
 };
 
